@@ -1,0 +1,24 @@
+{
+  "name": "playstore-crawler",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "author": "ItsK4tune <duongcuteyb@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start:dev": "nodemon --watch src --ext ts --exec tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "p-limit": "^6.2.0",
+    "puppeteer": "^24.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}
