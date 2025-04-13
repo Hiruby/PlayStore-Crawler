@@ -29,6 +29,7 @@ const TARGET_URL: string[] = [
   'https://play.google.com/store/apps/details?id=com.asobimo.alchemiastory',
 ];
 const CONCURRENCY_LIMIT: number = 3;
+const MAX_REVIEWS_PER_RATING = 100;
 const OUTPUT_FILE: string = 'playstore_reviews.jsonl';
 const CLICK_BUTTON_SELECTOR: string = 'button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-dgl2Hf.ksBjEc.lKxP2d.LQeN7.aLey0c';
 const CLICK_WAIT_DELAY: number = 3000; 
@@ -59,13 +60,7 @@ function parseRating(ariaLabel: string | null) {
   if (match && match[1]) {
     rating = parseFloat(match[1].replace(',', '.'));
 
-    if (rating < 3.0) {
-      return -1;
-    } else if (rating >= 4.0) {
-      return 1;
-    } else {
-      return 0;
-    }
+    return rating;
   }
 
   return null;
@@ -175,9 +170,11 @@ async function scrapeSinglePage(url: string): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     let processedCount = 0;
+    let ratingLevelCount = [0, 0, 0, 0, 0];
+    let progression = 0;
     for (const handle of reviewElementHandles) {
       processedCount++;
-
+      if (progression == 5) break;
       try {
         const extractedData = await handle.evaluate((el, sels) => {
           let name = '';
@@ -263,10 +260,16 @@ async function scrapeSinglePage(url: string): Promise<void> {
             rating: rating ?? 0, 
             review: reviewText, 
           };
-          const jsonLine = JSON.stringify(reviewToWrite) + '\n';
-          try {
-            fs.appendFileSync(OUTPUT_FILE, jsonLine, { encoding: 'utf8' });
-          } catch (err) {
+          if (ratingLevelCount[reviewToWrite.rating-1] < MAX_REVIEWS_PER_RATING){
+            ratingLevelCount[reviewToWrite.rating-1]++;
+            if (ratingLevelCount[reviewToWrite.rating-1] == MAX_REVIEWS_PER_RATING){
+              progression++;
+            }
+            const jsonLine = JSON.stringify(reviewToWrite) + '\n';
+            try {
+              fs.appendFileSync(OUTPUT_FILE, jsonLine, { encoding: 'utf8' });
+            } catch (err) {
+            }
           }
         } else if (!reviewText) {
         } else {
