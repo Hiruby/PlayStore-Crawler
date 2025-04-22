@@ -3,39 +3,29 @@ import fs from 'fs';
 import pLimit from 'p-limit';
 
 const TARGET_URL: string[] = [
-  'https://play.google.com/store/apps/details?id=com.blockstack.tophero',
-  'https://play.google.com/store/apps/details?id=com.gaimstudio.knightage',
-  'https://play.google.com/store/apps/details?id=com.flaregames.royalrevolt',
-  'https://play.google.com/store/apps/details?id=com.oneper.td.gp',
-  'https://play.google.com/store/apps/details?id=hedonic.games.deadshot',
-  'https://play.google.com/store/apps/details?id=com.artstorm.td',
-  'https://play.google.com/store/apps/details?id=com.dragonest.autochessmini.google',
-  'https://play.google.com/store/apps/details?id=com.dreamotion.ronin&pcampaignid=merch_published_cluster_promotion_battlestar_browse_all_games',
-  'https://play.google.com/store/apps/details?id=io.battleroyale.magicka',
-  'https://play.google.com/store/apps/details?id=com.unimob.stickman.master.shadow',
-  'https://play.google.com/store/apps/details?id=com.fattoy.swordash.android',
-  'https://play.google.com/store/apps/details?id=com.Jaems.ProjectCreationRPG',
-  'https://play.google.com/store/apps/details?id=com.swordfighting.stickmanshadow',
-  'https://play.google.com/store/apps/details?id=com.shadow.war.legend.slime.idle.rpg.survival.game',
-  'https://play.google.com/store/apps/details?id=com.dreamotion.roadtovalor',
-  'https://play.google.com/store/apps/details?id=com.dreamotion.empire',
-  'https://play.google.com/store/apps/details?id=com.Dreamotion.GunStrider',
-  'https://play.google.com/store/apps/details?id=com.smilegate.outerplane.stove.google&pcampaignid=merch_published_cluster_promotion_battlestar_collection_new_games',
-  'https://play.google.com/store/apps/details?id=com.patterncorp.yokai',
-  'https://play.google.com/store/apps/details?id=com.eyougame.msen',
-  'https://play.google.com/store/apps/details?id=com.sanctumstudio.eternalsenia2',
-  'https://play.google.com/store/apps/details?id=com.greenspring.conquestgirls',
-  'https://play.google.com/store/apps/details?id=com.com2us.starseedgl.android.google.global.normal',
-  'https://play.google.com/store/apps/details?id=com.asobimo.alchemiastory',
+  'https://play.google.com/store/apps/details?id=com.instagram.android',
+  'https://play.google.com/store/apps/details?id=com.facebook.katana',
+  'https://play.google.com/store/apps/details?id=com.picsart.studio',
+  'https://play.google.com/store/apps/details?id=com.moonactive.coinmaster',
+  'https://play.google.com/store/apps/details?id=com.riotgames.league.wildriftvn',
+  'https://play.google.com/store/apps/details?id=com.habby.capybara',
+  'https://play.google.com/store/apps/details?id=net.taserstungun',
+  // '',
 ];
 const CONCURRENCY_LIMIT: number = 3;
-const MAX_REVIEWS_PER_RATING = 100;
 const OUTPUT_FILE: string = 'playstore_reviews.jsonl';
+const MAX_OUTPUT_PER_RATING: number = 200;
 const CLICK_BUTTON_SELECTOR: string = 'button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-dgl2Hf.ksBjEc.lKxP2d.LQeN7.aLey0c';
+const CLICK_BUTTON_SELECTOR_2: string = '#yDmH0d > div.VfPpkd-Sx9Kwc.cC1eCc.UDxLd.PzCPDd.HQdjr.VfPpkd-Sx9Kwc-OWXEXe-FNFY6c > div.VfPpkd-wzTsW > div > div > div > div > div.fysCi.Vk3ZVd > div > div:nth-child(1) > div > div > div > div:nth-child(3)';
+const ONE_STAR_BUTTON_SELECTOR: string = '#yDmH0d > div.VfPpkd-Sx9Kwc.cC1eCc.UDxLd.PzCPDd.HQdjr.VfPpkd-Sx9Kwc-OWXEXe-FNFY6c > div.VfPpkd-wzTsW > div > div > div > div > div.fysCi.Vk3ZVd > div.JPdR6b.e5Emjc.ah7Sve.qjTEB > div > div > span:nth-child(2)';
+const TWO_STAR_BUTTON_SELECTOR: string = '#yDmH0d > div.VfPpkd-Sx9Kwc.cC1eCc.UDxLd.PzCPDd.HQdjr.VfPpkd-Sx9Kwc-OWXEXe-FNFY6c > div.VfPpkd-wzTsW > div > div > div > div > div.fysCi.Vk3ZVd > div.JPdR6b.e5Emjc.ah7Sve.qjTEB > div > div > span:nth-child(3)'; 
+const THREE_STAR_BUTTON_SELECTOR: string = '#yDmH0d > div.VfPpkd-Sx9Kwc.cC1eCc.UDxLd.PzCPDd.HQdjr.VfPpkd-Sx9Kwc-OWXEXe-FNFY6c > div.VfPpkd-wzTsW > div > div > div > div > div.fysCi.Vk3ZVd > div.JPdR6b.e5Emjc.ah7Sve.qjTEB > div > div > span:nth-child(4)';
+const FOUR_STAR_BUTTON_SELECTOR: string = '#yDmH0d > div.VfPpkd-Sx9Kwc.cC1eCc.UDxLd.PzCPDd.HQdjr.VfPpkd-Sx9Kwc-OWXEXe-FNFY6c > div.VfPpkd-wzTsW > div > div > div > div > div.fysCi.Vk3ZVd > div.JPdR6b.e5Emjc.ah7Sve.qjTEB > div > div > span:nth-child(5)';
+const FIVE_STAR_BUTTON_SELECTOR: string = '#yDmH0d > div.VfPpkd-Sx9Kwc.cC1eCc.UDxLd.PzCPDd.HQdjr.VfPpkd-Sx9Kwc-OWXEXe-FNFY6c > div.VfPpkd-wzTsW > div > div > div > div > div.fysCi.Vk3ZVd > div.JPdR6b.e5Emjc.ah7Sve.qjTEB > div > div > span:nth-child(6)';
 const CLICK_WAIT_DELAY: number = 3000; 
 const SCROLL_CONTAINER_SELECTOR: string = 'div.fysCi.Vk3ZVd'; 
 const SCROLL_DELAY: number = 700; 
-const MAX_SCROLL_ATTEMPTS: number = 50; 
+const MAX_SCROLL_ATTEMPTS: number = 25; 
 
 const SELECTORS = {
   appNameElement: 'span.AfwdI',
@@ -72,7 +62,7 @@ async function autoScroll(page: Page, scrollableSelector: string, maxAttempts: n
 
   try {
     await page.waitForSelector(scrollableSelector, { visible: true, timeout: 15000 });
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     while (currentScrollAttempts < maxAttempts) {
       const newHeight = await page.evaluate((selector) => {
@@ -116,6 +106,133 @@ async function autoScroll(page: Page, scrollableSelector: string, maxAttempts: n
   }
 }
 
+async function scrapePerStarRating(page: Page, starButtonSelector: string, appName: string, uniqueReviewKeys: Set<string>) {
+  let currentCommentNumber = 0;
+  await page.waitForSelector(CLICK_BUTTON_SELECTOR_2, { visible: true, timeout: 15000 });
+  const menuButton = await page.$(CLICK_BUTTON_SELECTOR_2);
+  if (menuButton) {
+    console.log(menuButton);
+    await menuButton.click();
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  await page.waitForSelector(starButtonSelector, { visible: true, timeout: 15000 });
+  const starButton = await page.$(starButtonSelector);
+  if (starButton) {
+    await starButton.click();
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  await page.waitForSelector(SCROLL_CONTAINER_SELECTOR, { visible: true, timeout: 10000});
+      
+  await autoScroll(page, SCROLL_CONTAINER_SELECTOR, MAX_SCROLL_ATTEMPTS, SCROLL_DELAY);
+
+  const reviewElementHandles: ElementHandle<Element>[] = await page.$$(SELECTORS.reviewBlock);
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  for (const handle of reviewElementHandles) {
+    if (currentCommentNumber >= MAX_OUTPUT_PER_RATING) {
+      break;
+    }
+    currentCommentNumber++;
+    try {
+      const extractedData = await handle.evaluate((el, sels) => {
+        let name = '';
+        let ratingLabel = null;
+        let reviewText = '';
+        let thumbsup = 0;
+        let error = null;
+        let nameElFound = false;
+        let ratingElFound = false;
+        let textElFound = false;
+        let thumbsupElFound = false;
+
+        try { 
+          const nameEl = el.querySelector(sels.nameElement);
+          nameElFound = !!nameEl; 
+          if (nameEl) {
+            name = (nameEl as HTMLElement).innerText || nameEl.textContent || '';;
+          }
+
+          const ratingEl = el.querySelector(sels.ratingElement);
+          ratingElFound = !!ratingEl; 
+          if (ratingEl) {
+            ratingLabel = ratingEl.getAttribute('aria-label');
+          }
+
+          const textEl = el.querySelector(sels.reviewTextElement);
+          textElFound = !!textEl;
+          if (textEl) {
+            reviewText = (textEl as HTMLElement).innerText || textEl.textContent || '';
+          }
+
+          const thumbsubEl = el.querySelector(sels.thumbsupElement);
+          thumbsupElFound = !!thumbsubEl;
+          if (thumbsubEl) {
+            thumbsup = parseInt(thumbsubEl.getAttribute('aria-label') || '0', 10);
+          }
+        } catch (e) {
+          error = e instanceof Error ? e.message : String(e);
+        }
+
+        return {
+          name,
+          ratingLabel,
+          reviewText: reviewText.trim(),
+          thumbsup,
+          error,
+          nameElFound,
+          ratingElFound,
+          textElFound,
+          thumbsupElFound,
+          nameSelectorUsed: sels.nameElement,
+          ratingSelectorUsed: sels.ratingElement, 
+          textSelectorUsed: sels.reviewTextElement,
+          thumbsupSelectorUsed: sels.thumbsupElement,
+        };
+      }, SELECTORS); 
+
+
+      if (extractedData.error) {
+        continue; 
+      }
+
+      if (!extractedData.nameElFound) {
+      }
+      if (!extractedData.ratingElFound) {
+      }
+      if (!extractedData.textElFound) {
+      }
+      if (!extractedData.thumbsupElFound) {
+      }
+
+      const name = extractedData.name
+      const rating = parseRating(extractedData.ratingLabel);
+      const reviewText = extractedData.reviewText;
+      const thumbsup = extractedData.thumbsup;
+      const uniqueKey = reviewText;
+
+      uniqueReviewKeys.add(uniqueKey);
+      const reviewToWrite = {
+        app: appName,
+        username: name, 
+        rating: rating ?? 0, 
+        review: reviewText, 
+      };
+      const jsonLine = JSON.stringify(reviewToWrite) + '\n';
+      try {
+        fs.appendFileSync(OUTPUT_FILE, jsonLine, { encoding: 'utf8' });
+      } catch (err) {
+      }
+    } catch (error) {
+    } finally {
+      await handle.dispose();
+    }
+  }
+}
+
 async function scrapeSinglePage(url: string): Promise<void> {
   if (!TARGET_URL) {
     process.exit(1); 
@@ -126,7 +243,7 @@ async function scrapeSinglePage(url: string): Promise<void> {
 
   try {
     browser = await puppeteer.launch({
-        headless: true, 
+        headless: false, 
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -153,10 +270,6 @@ async function scrapeSinglePage(url: string): Promise<void> {
           } else {
           }
         }, CLICK_BUTTON_SELECTOR);
-
-        await new Promise(resolve => setTimeout(resolve, CLICK_WAIT_DELAY + Math.random() * 200));
-
-        await page.waitForSelector(SCROLL_CONTAINER_SELECTOR, { visible: true, timeout: 10000});
       } catch (error) {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
@@ -164,121 +277,11 @@ async function scrapeSinglePage(url: string): Promise<void> {
       process.exit(1);
     }
 
-    await autoScroll(page, SCROLL_CONTAINER_SELECTOR, MAX_SCROLL_ATTEMPTS, SCROLL_DELAY);
-
-    const reviewElementHandles: ElementHandle<Element>[] = await page.$$(SELECTORS.reviewBlock);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    let processedCount = 0;
-    let ratingLevelCount = [0, 0, 0, 0, 0];
-    let progression = 0;
-    for (const handle of reviewElementHandles) {
-      processedCount++;
-      if (progression == 5) break;
-      try {
-        const extractedData = await handle.evaluate((el, sels) => {
-          let name = '';
-          let ratingLabel = null;
-          let reviewText = '';
-          let thumbsup = 0;
-          let error = null;
-          let nameElFound = false;
-          let ratingElFound = false;
-          let textElFound = false;
-          let thumbsupElFound = false;
-
-          try { 
-            const nameEl = el.querySelector(sels.nameElement);
-            nameElFound = !!nameEl; 
-            if (nameEl) {
-              name = (nameEl as HTMLElement).innerText || nameEl.textContent || '';;
-            }
-
-            const ratingEl = el.querySelector(sels.ratingElement);
-            ratingElFound = !!ratingEl; 
-            if (ratingEl) {
-              ratingLabel = ratingEl.getAttribute('aria-label');
-            }
-
-            const textEl = el.querySelector(sels.reviewTextElement);
-            textElFound = !!textEl;
-            if (textEl) {
-              reviewText = (textEl as HTMLElement).innerText || textEl.textContent || '';
-            }
-
-            const thumbsubEl = el.querySelector(sels.thumbsupElement);
-            thumbsupElFound = !!thumbsubEl;
-            if (thumbsubEl) {
-              thumbsup = parseInt(thumbsubEl.getAttribute('aria-label') || '0', 10);
-            }
-          } catch (e) {
-            error = e instanceof Error ? e.message : String(e);
-          }
-
-          return {
-            name,
-            ratingLabel,
-            reviewText: reviewText.trim(),
-            thumbsup,
-            error,
-            nameElFound,
-            ratingElFound,
-            textElFound,
-            thumbsupElFound,
-            nameSelectorUsed: sels.nameElement,
-            ratingSelectorUsed: sels.ratingElement, 
-            textSelectorUsed: sels.reviewTextElement,
-            thumbsupSelectorUsed: sels.thumbsupElement,
-          };
-        }, SELECTORS); 
-
-
-        if (extractedData.error) {
-          continue; 
-        }
-
-        if (!extractedData.nameElFound) {
-        }
-        if (!extractedData.ratingElFound) {
-        }
-        if (!extractedData.textElFound) {
-        }
-        if (!extractedData.thumbsupElFound) {
-        }
-
-        const name = extractedData.name
-        const rating = parseRating(extractedData.ratingLabel);
-        const reviewText = extractedData.reviewText;
-        const thumbsup = extractedData.thumbsup;
-        const uniqueKey = reviewText;
-
-        if (reviewText && !uniqueReviewKeys.has(uniqueKey) && (reviewText.length > 10 || thumbsup > 5)) {
-          uniqueReviewKeys.add(uniqueKey);
-          const reviewToWrite = {
-            app: appName,
-            username: name, 
-            rating: rating ?? 0, 
-            review: reviewText, 
-          };
-          if (ratingLevelCount[reviewToWrite.rating-1] < MAX_REVIEWS_PER_RATING){
-            ratingLevelCount[reviewToWrite.rating-1]++;
-            if (ratingLevelCount[reviewToWrite.rating-1] == MAX_REVIEWS_PER_RATING){
-              progression++;
-            }
-            const jsonLine = JSON.stringify(reviewToWrite) + '\n';
-            try {
-              fs.appendFileSync(OUTPUT_FILE, jsonLine, { encoding: 'utf8' });
-            } catch (err) {
-            }
-          }
-        } else if (!reviewText) {
-        } else {
-        }
-      } catch (error) {
-      } finally {
-        await handle.dispose();
-      }
-    }
+    await scrapePerStarRating(page, ONE_STAR_BUTTON_SELECTOR, appName, uniqueReviewKeys);
+    await scrapePerStarRating(page, TWO_STAR_BUTTON_SELECTOR, appName, uniqueReviewKeys);
+    await scrapePerStarRating(page, THREE_STAR_BUTTON_SELECTOR, appName, uniqueReviewKeys);
+    await scrapePerStarRating(page, FOUR_STAR_BUTTON_SELECTOR, appName, uniqueReviewKeys);
+    await scrapePerStarRating(page, FIVE_STAR_BUTTON_SELECTOR, appName, uniqueReviewKeys);
   
   } catch (error) {
   } finally {
